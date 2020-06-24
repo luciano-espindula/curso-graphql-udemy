@@ -1,11 +1,16 @@
+let idp = 1
+function proximoIdp() {
+    return idp++
+}
+
 let id = 1
 function proximoId() {
     return id++
 }
 
 const perfis = [
-    { id: 1, nome: 'comum' },
-    { id: 2, nome: 'administrador' }
+    { id: proximoIdp(), nome: 'comum' },
+    { id: proximoIdp(), nome: 'administrador' }
 ]
 
 const usuarios = [{
@@ -31,4 +36,4 @@ const usuarios = [{
     status: 'BLOQUEADO'
 }]
 
-module.exports = { usuarios, perfis, proximoId }
+module.exports = { usuarios, perfis, proximoId, proximoIdp }

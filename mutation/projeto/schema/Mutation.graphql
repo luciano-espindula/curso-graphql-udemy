@@ -1,0 +1,45 @@
+type Mutation {
+    # mutation usuario
+    # Virgula opcional
+    novoUsuario(
+        dados: UsuarioInput!
+        # nome: String,
+        # email: String,
+        # idade: Int
+    ): Usuario!
+
+    excluirUsuario(
+        filtro: UsuarioFiltro!
+        # id: Int!
+        ): Usuario
+
+    alterarUsuario(
+        filtro: UsuarioFiltro!
+        # id: Int!
+        dados: UsuarioInput!
+        # nome: String
+        # email: String
+        # idade: Int
+    ): Usuario
+    
+    # mutation de perfil
+    novoPerfil(
+        dados: PerfilInput!
+        # nome: String,
+        # email: String,
+        # idade: Int
+    ): Perfil!
+
+    excluirPerfil(
+        filtro: PerfilFiltro!
+        # id: Int!
+        # nome: String
+        ): Perfil
+
+    alterarPerfil(
+        filtro: PerfilFiltro!
+        # id: Int!
+        dados: PerfilInput!
+        # nome: String
+    ): Perfil
+}
