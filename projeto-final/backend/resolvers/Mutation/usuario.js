@@ -1,20 +1,45 @@
+const bcrypt = require('bcrypt-nodejs')
 const db = require('../../config/db')
 const { perfil: obterPerfil } = require('../Query/perfil')
 const { usuario: obterUsuario } = require('../Query/usuario')
 
-module.exports = {
-    async novoUsuario(_, { dados }) {
+const mutations = {
+
+    registrarUsuario(_, { dados }) {
+        return mutations.novoUsuario(_, {
+            dados: {
+                nome: dados.nome,
+                email: dados.email,
+                senha: dados.senha,
+            }
+        })
+
+    },
+
+    async novoUsuario(_, { dados }, ctx) {
+        ctx && ctx.validarAdmin()
+
         try {
             const idsPerfis = []
-            if(dados.perfis) {
-                for(let filtro of dados.perfis) {
-                    const perfil = await obterPerfil(_, {
-                        filtro
-                    })
-                    if(perfil) idsPerfis.push(perfil.id)
-                }
+
+            if (!dados.perfis || !dados.perfis.length) {
+                dados.perfis = [{
+                    nome: 'comum'
+                }]
             }
-            // Excluir esta coluna pois ela n„o existe no DB
+
+            for(let filtro of dados.perfis) {
+                const perfil = await obterPerfil(_, {
+                    filtro
+                })
+                if(perfil) idsPerfis.push(perfil.id)
+            }
+
+            // criptografar a senha
+            const salt = bcrypt.genSaltSync()
+            dados.senha = bcrypt.hashSync(dados.senha, salt)
+
+            // Excluir esta coluna pois ela n√£o existe no DB
             delete dados.perfis
             const [ id ] = await db('usuarios')
                 .insert(dados)
@@ -30,7 +55,10 @@ module.exports = {
             throw new Error(e.sqlMessage)
         }
     },
-    async excluirUsuario(_, args) {
+    
+    async excluirUsuario(_, args, ctx) {
+        ctx && ctx.validarAdmin()
+
         try {
             const usuario = await obterUsuario(_, args)
             if(usuario) {
@@ -46,14 +74,26 @@ module.exports = {
         }
 
     },
-    async alterarUsuario(_, { filtro, dados }) {
+
+    async alterarUsuario(_, { filtro, dados }, ctx) {
+        ctx && ctx.validarUsuarioFiltro(filtro)
+
         try {
             const usuario = await obterUsuario(_, { filtro })
             if (usuario) {
                 const { id } = usuario
                 // pegar os perfis do filtro
-                await alterarPerfis(dados, id)
-                // Excluir esta coluna pois ela n„o existe no DB
+                if (ctx.admin) {
+                    // await alterarPerfis(dados, id)
+                }
+                                
+                if (dados.senha) {
+                    // criptografar a senha
+                    const salt = bcrypt.genSaltSync()
+                    dados.senha = bcrypt.hashSync(dados.senha, salt)
+                }
+
+                // Excluir esta coluna pois ela n√£o existe no DB
                 delete dados.perfis
                 await db('usuarios').where({ id }).update(dados)
             }
@@ -62,10 +102,10 @@ module.exports = {
         catch(e) {
             throw new Error(e)
         }
-    }
+    },
 }
 
-async function alterarPerfis(dados, id) {
+async function  alterarPerfis(dados, id) {
     if (dados.perfis) {
         await db('usuarios_perfis')
             .where({ usuario_id: id }).delete()
@@ -78,3 +118,5 @@ async function alterarPerfis(dados, id) {
         }
     }
 }
+
+module.exports = mutations

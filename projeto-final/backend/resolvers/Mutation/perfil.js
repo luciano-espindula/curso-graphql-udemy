@@ -2,12 +2,17 @@ const db = require('../../config/db')
 const { perfil: obterPerfil } = require('../Query/perfil')
 
 module.exports = {
-    async novoPerfil(_, { dados }) {
+    async novoPerfil(_, { dados }, ctx) {
+        ctx && ctx.validarAdmin() //LAE - Este cÃ³digo Ã© equivalente ao cÃ³digo comentado abaixo
+        // if (ctx) {
+        //     ctx.validarAdmin()
+        // }
+
         let filtro = {id: null, nome: dados.nome}
         const perfil = await obterPerfil(_, { filtro })
         
         if (perfil) {
-            throw new Error(`Perfil informado já cadastrado. ${dados.nome}`)
+            throw new Error(`Perfil informado jï¿½ cadastrado. ${dados.nome}`)
         }
         try {
             const [ id ] = await db('perfis')
@@ -19,8 +24,9 @@ module.exports = {
         }
     },
 
-    async excluirPerfil(_, { filtro }) { //{ filtro } -> args pode ser usado assim também
-        try {
+    async excluirPerfil(_, { filtro }, ctx) { //{ filtro } -> args pode ser usado assim tambï¿½m
+            ctx && ctx.validarAdmin()
+            try {
             const perfil = await obterPerfil(_, { filtro })
 
             if (perfil) {
@@ -35,7 +41,9 @@ module.exports = {
             throw new Error(e.sqlMessage)
         }
     },
-    async alterarPerfil(_, { filtro, dados }) {
+    async alterarPerfil(_, { filtro, dados }, ctx) {
+        ctx && ctx.validarAdmin()
+        
         try {
             const perfil = await obterPerfil(_, { filtro })
             if(perfil) {
