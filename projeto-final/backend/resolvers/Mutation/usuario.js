@@ -84,7 +84,7 @@ const mutations = {
                 const { id } = usuario
                 // pegar os perfis do filtro
                 if (ctx.admin) {
-                    // await alterarPerfis(dados, id)
+                    await alterarPerfis(dados, id)
                 }
                                 
                 if (dados.senha) {
